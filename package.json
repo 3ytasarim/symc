@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3300",
+    "dev": "prisma generate && next dev -p 3300",
     "build": "prisma generate && next build",
     "start": "next start -p 3300",
     "lint": "eslint .",
@@ -12,7 +12,8 @@
     "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "admin:create": "tsx scripts/create-admin.ts",
-    "seo:check": "tsx scripts/seo-check.ts"
+    "seo:check": "tsx scripts/seo-check.ts",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
