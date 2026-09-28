@@ -1,0 +1,331 @@
+// SYMC website — content & admin data model.
+// Images are NEVER stored in PostgreSQL: `Media` rows only hold metadata and a
+// storage key; the binary lives in the configured media storage (see src/lib/storage).
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum AdminRole {
+  ADMIN
+  EDITOR
+}
+
+enum PublishStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum ProjectStatus {
+  COMPLETED
+  IN_PROGRESS
+}
+
+enum RedirectSource {
+  LEGACY
+  SLUG_CHANGE
+  MANUAL
+}
+
+// ─── Admin / auth ────────────────────────────────────────────────────────────
+
+model AdminUser {
+  id               String         @id @default(cuid())
+  email            String         @unique
+  name             String
+  passwordHash     String
+  role             AdminRole      @default(ADMIN)
+  isActive         Boolean        @default(true)
+  failedLoginCount Int            @default(0)
+  lockedUntil      DateTime?
+  lastLoginAt      DateTime?
+  sessions         AdminSession[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model AdminSession {
+  id        String    @id @default(cuid())
+  /// SHA-256 of the random session token; the raw token only lives in the cookie.
+  tokenHash String    @unique
+  userId    String
+  user      AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  userAgent String?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// ─── Media ───────────────────────────────────────────────────────────────────
+
+model Media {
+  id         String   @id @default(cuid())
+  /// Path inside media storage, e.g. "projects/my-mmm-49-2m/my-mmm-49-2m-helideck.jpg".
+  /// Public URL is /media/<storageKey>. Stable & descriptive for image SEO.
+  storageKey String   @unique
+  filename   String
+  mimeType   String
+  /// Real pixel dimensions read from the file header at upload time.
+  width      Int
+  height     Int
+  sizeBytes  Int
+  alt        String   @default("")
+  caption    String   @default("")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  projectCovers  Project[]      @relation("ProjectCover")
+  projectHeroes  Project[]      @relation("ProjectHero")
+  projectOg      Project[]      @relation("ProjectOg")
+  projectImages  ProjectImage[]
+  serviceHeroes  Service[]      @relation("ServiceHero")
+  serviceOg      Service[]      @relation("ServiceOg")
+  serviceImages  ServiceImage[]
+  postCovers     BlogPost[]     @relation("PostCover")
+  postOg         BlogPost[]     @relation("PostOg")
+  settingsLogo   SiteSetting[]  @relation("SettingsLogo")
+  settingsLight  SiteSetting[]  @relation("SettingsLogoLight")
+  settingsDark   SiteSetting[]  @relation("SettingsLogoDark")
+  settingsOg     SiteSetting[]  @relation("SettingsOg")
+  settingsHero   SiteSetting[]  @relation("SettingsHero")
+
+  @@index([createdAt])
+}
+
+// ─── Projects ────────────────────────────────────────────────────────────────
+
+model ProjectCategory {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String    @default("")
+  sortOrder   Int       @default(0)
+  projects    Project[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Project {
+  id               String           @id @default(cuid())
+  title            String
+  slug             String           @unique
+  categoryId       String?
+  category         ProjectCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  status           ProjectStatus    @default(COMPLETED)
+  publishStatus    PublishStatus    @default(DRAFT)
+  shortDescription String           @default("")
+  /// Sanitised HTML (see src/lib/content/sanitize.ts).
+  content          String           @default("")
+
+  coverImageId String?
+  coverImage   Media?         @relation("ProjectCover", fields: [coverImageId], references: [id], onDelete: SetNull)
+  heroImageId  String?
+  heroImage    Media?         @relation("ProjectHero", fields: [heroImageId], references: [id], onDelete: SetNull)
+  gallery      ProjectImage[]
+
+  // All technical fields are optional and never rendered when empty.
+  projectYear    Int?
+  completionDate DateTime?
+  yachtName      String?
+  yachtType      String?
+  shipyard       String?
+  location       String?
+  length         String?
+  beam           String?
+  draft          String?
+  grossTonnage   String?
+  /// Work items performed (one per entry).
+  scopeItems     String[]  @default([])
+  /// Free-form extra specifications: [{ "label": string, "value": string }].
+  technicalSpecs Json?
+
+  services Service[] @relation("ProjectServices")
+  posts    BlogPost[] @relation("PostProjects")
+
+  featured       Boolean   @default(false)
+  sortOrder      Int       @default(0)
+  seoTitle       String?
+  seoDescription String?
+  ogImageId      String?
+  ogImage        Media?    @relation("ProjectOg", fields: [ogImageId], references: [id], onDelete: SetNull)
+  robotsIndex    Boolean   @default(true)
+  publishedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([publishStatus, sortOrder])
+  @@index([categoryId])
+}
+
+model ProjectImage {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  mediaId   String
+  media     Media   @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  sortOrder Int     @default(0)
+
+  @@unique([projectId, mediaId])
+  @@index([projectId, sortOrder])
+}
+
+// ─── Services ────────────────────────────────────────────────────────────────
+
+model Service {
+  id               String         @id @default(cuid())
+  title            String
+  /// Served at the site root (/<slug>/) to preserve the legacy symc.com.tr URLs.
+  slug             String         @unique
+  shortDescription String         @default("")
+  content          String         @default("")
+  /// Bullet list of included services (e.g. yacht management scope).
+  highlights       String[]       @default([])
+  heroImageId      String?
+  heroImage        Media?         @relation("ServiceHero", fields: [heroImageId], references: [id], onDelete: SetNull)
+  gallery          ServiceImage[]
+  projects         Project[]      @relation("ProjectServices")
+  posts            BlogPost[]     @relation("PostServices")
+  sortOrder        Int            @default(0)
+  featured         Boolean        @default(false)
+  publishStatus    PublishStatus  @default(DRAFT)
+  seoTitle         String?
+  seoDescription   String?
+  ogImageId        String?
+  ogImage          Media?         @relation("ServiceOg", fields: [ogImageId], references: [id], onDelete: SetNull)
+  robotsIndex      Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([publishStatus, sortOrder])
+}
+
+model ServiceImage {
+  id        String  @id @default(cuid())
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  mediaId   String
+  media     Media   @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  sortOrder Int     @default(0)
+
+  @@unique([serviceId, mediaId])
+  @@index([serviceId, sortOrder])
+}
+
+// ─── News / blog ─────────────────────────────────────────────────────────────
+
+model BlogCategory {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  description String     @default("")
+  sortOrder   Int        @default(0)
+  posts       BlogPost[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model BlogPost {
+  id              String        @id @default(cuid())
+  title           String
+  slug            String        @unique
+  excerpt         String        @default("")
+  content         String        @default("")
+  coverImageId    String?
+  coverImage      Media?        @relation("PostCover", fields: [coverImageId], references: [id], onDelete: SetNull)
+  categoryId      String?
+  category        BlogCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  authorName      String?
+  publishStatus   PublishStatus @default(DRAFT)
+  publishedAt     DateTime?
+  featured        Boolean       @default(false)
+  relatedProjects Project[]     @relation("PostProjects")
+  relatedServices Service[]     @relation("PostServices")
+  seoTitle        String?
+  seoDescription  String?
+  ogImageId       String?
+  ogImage         Media?        @relation("PostOg", fields: [ogImageId], references: [id], onDelete: SetNull)
+  /// Absolute canonical override (only for syndicated content).
+  canonicalUrl    String?
+  robotsIndex     Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([publishStatus, publishedAt])
+}
+
+// ─── Site settings (singleton row id = "site") ───────────────────────────────
+
+model SiteSetting {
+  id                    String   @id @default("site")
+  companyName           String   @default("SYMC")
+  alternateName         String   @default("")
+  tagline               String   @default("")
+  description           String   @default("")
+  foundingYear          Int?
+  logoId                String?
+  logo                  Media?   @relation("SettingsLogo", fields: [logoId], references: [id], onDelete: SetNull)
+  logoLightId           String?
+  logoLight             Media?   @relation("SettingsLogoLight", fields: [logoLightId], references: [id], onDelete: SetNull)
+  logoDarkId            String?
+  logoDark              Media?   @relation("SettingsLogoDark", fields: [logoDarkId], references: [id], onDelete: SetNull)
+  homeHeroImageId       String?
+  homeHeroImage         Media?   @relation("SettingsHero", fields: [homeHeroImageId], references: [id], onDelete: SetNull)
+  defaultOgImageId      String?
+  defaultOgImage        Media?   @relation("SettingsOg", fields: [defaultOgImageId], references: [id], onDelete: SetNull)
+  phone                 String   @default("")
+  email                 String   @default("")
+  streetAddress         String   @default("")
+  addressLocality       String   @default("")
+  addressRegion         String   @default("")
+  postalCode            String   @default("")
+  addressCountry        String   @default("")
+  openingHours          String   @default("")
+  /// Machine-readable hours for structured data, e.g. "Mo-Fr 08:00-18:00".
+  openingHoursSpec      String   @default("")
+  googleMapsUrl         String   @default("")
+  googleMapsEmbedUrl    String   @default("")
+  instagramUrl          String   @default("")
+  linkedinUrl           String   @default("")
+  youtubeUrl            String   @default("")
+  whatsappUrl           String   @default("")
+  footerText            String   @default("")
+  defaultSeoTitle       String   @default("")
+  defaultSeoDescription String   @default("")
+  updatedAt             DateTime @updatedAt
+}
+
+// ─── Redirects (legacy URLs + automatic slug-change redirects) ───────────────
+
+model Redirect {
+  id         String         @id @default(cuid())
+  fromPath   String         @unique
+  toPath     String
+  statusCode Int            @default(301)
+  source     RedirectSource @default(MANUAL)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+}
+
+// ─── Contact form ────────────────────────────────────────────────────────────
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String   @default("")
+  subject   String   @default("")
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

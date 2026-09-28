@@ -1,0 +1,16 @@
+/node_modules
+/.next/
+/out/
+/build
+/coverage
+.DS_Store
+*.pem
+npm-debug.log*
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+next-env.d.ts
+/src/generated/prisma
+# runtime media storage (uploaded files live outside git)
+/storage/
