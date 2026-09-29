@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { ServiceCard } from "@/components/site/Cards";
 import { CtaBand } from "@/components/site/CtaBand";
-import { ArrowRight } from "@/components/site/Icons";
 import { JsonLd } from "@/components/site/JsonLd";
 import { PageHero } from "@/components/site/PageHero";
-import { SiteImage } from "@/components/site/SiteImage";
 import { getPublishedServices } from "@/lib/data/services";
 import { getSiteSettings } from "@/lib/data/settings";
 import { itemListEntity, ids, pageGraph } from "@/lib/seo/json-ld";
@@ -43,43 +41,28 @@ export default async function ServicesPage() {
     <>
       <JsonLd data={jsonLd} />
       <PageHero
-        size="band"
         title="Services"
         eyebrow="Superyacht Management & Consultancy"
-        intro="From the first steel of a new build to the day-to-day management of your yacht — one trusted partner."
         crumbs={crumbs}
       />
-      <section className="shell py-20 md:py-28">
-        <ul className="space-y-24 md:space-y-32">
-          {services.map((svc, i) => (
-            <li key={svc.slug} className="grid items-center gap-10 md:grid-cols-12" data-reveal>
-              <Link
+      <section className="bg-bone py-16 md:py-20">
+        <ul className="shell grid grid-cols-1 gap-6 sm:grid-cols-2">
+          {services.map((svc) => (
+            <li key={svc.slug} data-reveal>
+              <ServiceCard
+                as="h2"
                 href={routes.service(svc.slug)}
-                className={`group relative block aspect-[4/3] overflow-hidden bg-deep md:col-span-7 ${i % 2 ? "md:order-2 md:col-start-6" : ""}`}
-                tabIndex={-1}
-                aria-hidden="true"
-              >
-                {svc.heroImage ? (
-                  <SiteImage image={svc.heroImage} fill sizes="(min-width: 768px) 58vw, 100vw" className="object-cover transition-transform duration-[1.2s] group-hover:scale-[1.03]" />
-                ) : null}
-              </Link>
-              <div className={`md:col-span-5 ${i % 2 ? "md:order-1 md:col-start-1" : "md:col-start-8"}`}>
-                <p className="font-mono text-[12px] text-mute">{String(i + 1).padStart(2, "0")}</p>
-                <h2 className="display-3 mt-4">
-                  <Link href={routes.service(svc.slug)} className="hover:text-sea">
-                    {svc.title}
-                  </Link>
-                </h2>
-                <p className="mt-6 text-[1.0625rem] leading-[1.75] text-ink/75">{svc.shortDescription}</p>
-                <Link href={routes.service(svc.slug)} className="btn-ghost mt-8">
-                  Explore {svc.title} <ArrowRight />
-                </Link>
-              </div>
+                title={svc.title}
+                summary={svc.shortDescription}
+                image={svc.heroImage}
+                imageClass="h-80 md:h-96"
+                sizes="(min-width: 640px) 620px, 100vw"
+              />
             </li>
           ))}
         </ul>
       </section>
-      <CtaBand phone={s.phone} email={s.email} />
+      <CtaBand phone={s.phone} />
     </>
   );
 }

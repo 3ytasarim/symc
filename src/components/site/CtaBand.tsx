@@ -1,55 +1,52 @@
 import Link from "next/link";
-import type { SiteImage as SiteImageData } from "@/lib/data/media";
+import { ArrowRight, Phone } from "lucide-react";
 import { telHref } from "@/lib/data/settings";
-import { Eyebrow } from "./Eyebrow";
-import { SiteImage } from "./SiteImage";
+import { VELARIS_COLORS } from "./palette";
+import { Velaris } from "./Velaris";
 
 type Props = {
-  image?: SiteImageData | null;
   phone?: string;
-  email?: string;
   title?: string;
   text?: string;
 };
 
-/** Closing call to action (copy from the original SYMC homepage). */
+/**
+ * Closing call to action on an animated gold/charcoal Velaris background.
+ * The rounded footer overlaps its bottom edge (globals.css). Copy from the
+ * original SYMC homepage.
+ */
 export function CtaBand({
-  image,
   phone,
-  email,
   title = "Do you want to work with us?",
   text = "With more than 25 years of experience and expertise as a marine surveyor and project manager, SYMC can be your solution partner for all kinds of classification rules, owner requirements and the best quality for your existing yacht or new build.",
 }: Props) {
   return (
-    <section className="on-dark relative isolate overflow-hidden bg-deep text-white" aria-labelledby="cta-title">
-      {image ? (
-        <>
-          <SiteImage image={image} fill sizes="100vw" className="-z-20 object-cover" />
-          <div aria-hidden="true" className="absolute inset-0 -z-10 bg-deep/80" />
-        </>
-      ) : null}
-      <div className="shell grid gap-12 py-24 md:grid-cols-12 md:py-32" data-reveal>
-        <div className="md:col-span-7">
-          <Eyebrow tone="light">Contact</Eyebrow>
-          <h2 id="cta-title" className="display-2 mt-6 text-balance">{title}</h2>
-          <p className="lede mt-8 max-w-xl text-white/75">{text}</p>
+    <section aria-labelledby="cta-title" data-cta-band className="on-dark text-white">
+      <Velaris colors={VELARIS_COLORS} className="pb-24 pt-24 md:pb-28 md:pt-28">
+        {/* keeps text contrast even where the gold highlight passes behind it */}
+        <div aria-hidden="true" className="absolute inset-0 -z-[5] bg-black/30" />
+        <div className="shell relative text-center">
+          <span className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-1 text-xs font-bold uppercase tracking-widest text-gold backdrop-blur">
+            Get in touch
+          </span>
+          <h2 id="cta-title" className="mx-auto mt-6 max-w-3xl text-4xl font-black leading-tight tracking-tight sm:text-5xl">
+            {title}
+          </h2>
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-white/85 md:text-lg">{text}</p>
+          <div className="mt-10 flex flex-wrap justify-center gap-4">
+            <Link href="/contact/" className="btn-solid group h-12 px-8">
+              Contact SYMC
+              <ArrowRight aria-hidden="true" className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+            </Link>
+            {phone ? (
+              <a href={telHref(phone)} className="btn-light h-12 px-8 backdrop-blur">
+                <Phone aria-hidden="true" className="h-4 w-4" />
+                {phone}
+              </a>
+            ) : null}
+          </div>
         </div>
-        <div className="flex flex-col justify-end gap-4 md:col-span-4 md:col-start-9">
-          <Link href="/contact/" className="btn-light-solid w-full">
-            Contact SYMC
-          </Link>
-          {phone ? (
-            <a href={telHref(phone)} className="btn-light w-full">
-              {phone}
-            </a>
-          ) : null}
-          {email ? (
-            <a href={`mailto:${email}`} className="btn-light w-full normal-case tracking-[0.06em]">
-              {email}
-            </a>
-          ) : null}
-        </div>
-      </div>
+      </Velaris>
     </section>
   );
 }

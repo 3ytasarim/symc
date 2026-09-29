@@ -120,7 +120,7 @@ export const services: SeedService[] = [
     seoTitle: "Yacht Project Management & Consultancy",
     seoDescription:
       "Project managers with shipyard experience managing superyacht projects with the right budget, quality, equipment choices and cash flow — including new build supervision.",
-    heroKey: "services/project-management-and-consultancy/measurement-during-yacht-inspection.jpg",
+    heroKey: "services/project-management-and-consultancy/superyacht-at-anchor-open-sea.jpg",
     galleryKeys: [
       "services/project-management-and-consultancy/site-supervision-steel-hull-construction.jpg",
       "services/project-management-and-consultancy/yacht-superstructure-outfitting-scaffolding.jpg",

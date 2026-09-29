@@ -13,10 +13,10 @@ export default async function MessagesPage() {
       <PageHeader title="Messages" description="Enquiries sent through the contact form on /contact/." />
       <ul className="space-y-3">
         {messages.map((m) => (
-          <li key={m.id} className={`rounded-[3px] border bg-white p-5 ${m.isRead ? "border-[#dde2e6]" : "border-sea"}`}>
+          <li key={m.id} className={`rounded-[3px] border bg-white p-5 ${m.isRead ? "border-[#dde2e6]" : "border-gold"}`}>
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p className="font-semibold">{m.subject || "(no subject)"} {!m.isRead ? <span className="ml-2 rounded-full bg-sea px-2 py-0.5 text-[11px] text-white">New</span> : null}</p>
+                <p className="font-semibold">{m.subject || "(no subject)"} {!m.isRead ? <span className="ml-2 rounded-full bg-gold px-2 py-0.5 text-[11px] text-ink">New</span> : null}</p>
                 <p className="text-[13px] text-mute">
                   {m.name} · <a href={`mailto:${m.email}`} className="underline">{m.email}</a>
                   {m.phone ? <> · <a href={`tel:${m.phone.replace(/[^\d+]/g, "")}`}>{m.phone}</a></> : null} · {m.createdAt.toLocaleString("en-GB", { timeZone: "Europe/Istanbul" })}

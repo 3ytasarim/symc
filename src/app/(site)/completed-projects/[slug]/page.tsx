@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
+import { Anchor, ArrowLeft, ArrowRight, CheckCircle2, Compass, Ship, Wrench } from "lucide-react";
 import { CtaBand } from "@/components/site/CtaBand";
-import { Eyebrow } from "@/components/site/Eyebrow";
+import { SectionHeading } from "@/components/site/Eyebrow";
 import { Gallery } from "@/components/site/Gallery";
-import { ArrowRight } from "@/components/site/Icons";
 import { JsonLd } from "@/components/site/JsonLd";
+import { DecoratedImage } from "@/components/site/DecoratedImage";
 import { PageHero } from "@/components/site/PageHero";
-import { ProjectTile, projectMeta } from "@/components/site/ProjectTiles";
+import { ProjectShowcaseCard, statusBadge } from "@/components/site/ProjectTiles";
 import { RichText } from "@/components/site/RichText";
-import { SpecList } from "@/components/site/SpecList";
 import { findRedirect } from "@/lib/data/redirects";
 import { getProjectBySlug, getRelatedProjects } from "@/lib/data/projects";
 import { getSiteSettings } from "@/lib/data/settings";
@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: p.seoTitle || p.title,
     description: p.seoDescription || p.shortDescription || htmlToText(p.content),
     path: routes.project(p.slug),
-    // Same primary image for the visible hero, og:image and #primaryimage.
+    // Same primary image for the visible gallery lead, og:image and #primaryimage.
     image: p.ogImage ?? primary,
     index: p.robotsIndex,
   });
@@ -60,13 +60,14 @@ export default async function ProjectPage({ params }: Props) {
   const path = routes.project(p.slug);
   const url = absoluteUrl(path);
   const primary = p.heroImage ?? p.coverImage;
-  const gallery = p.gallery.filter((g) => g.id !== primary?.id);
+  const images = [...(primary ? [primary] : []), ...p.gallery.filter((g) => g.id !== primary?.id)];
   const crumbs = [
     { name: "Home", path: routes.home },
     { name: "Completed Projects", path: routes.projects },
     { name: p.title, path },
   ];
   const description = p.seoDescription || p.shortDescription || htmlToText(p.content);
+  const badge = statusBadge(p.status);
 
   const jsonLd = await pageGraph(s, {
     path,
@@ -96,98 +97,138 @@ export default async function ProjectPage({ params }: Props) {
     ],
   });
 
+  // Inner images: everything except the primary photo shown at the top.
+  const inner = images.filter((img) => img.id !== primary?.id);
+  const hasBody = Boolean(p.content && htmlToText(p.content) !== p.shortDescription);
+  const heroBadges = [
+    { label: badge.label, tone: badge.tone },
+    ...(p.projectYear ? [{ label: String(p.projectYear), tone: "neutral" as const }] : []),
+    ...(p.length ? [{ label: p.length, tone: "neutral" as const }] : []),
+  ];
+
   return (
     <>
       <JsonLd data={jsonLd} />
       <PageHero
         title={p.title}
         eyebrow={p.category?.name ?? "Project"}
-        image={primary}
+        intro={p.shortDescription || undefined}
         crumbs={crumbs}
-        meta={projectMeta(p)}
+        badges={heroBadges}
       />
 
-      <section className="shell py-20 md:py-28">
-        <div className="grid gap-16 lg:grid-cols-12">
-          <div className="lg:col-span-7">
-            <Eyebrow index="01">The project</Eyebrow>
-            {p.shortDescription ? (
-              <p className="mt-8 font-display text-[1.9rem] leading-[1.2] text-balance md:text-[2.4rem]">{p.shortDescription}</p>
+      <section className="bg-white py-16 md:py-24">
+        <div className="shell grid grid-cols-1 gap-12 lg:grid-cols-3 lg:gap-14">
+          <div className="space-y-12 lg:col-span-2">
+            {primary ? <DecoratedImage image={primary} icons={[Ship, Anchor, Wrench, Compass]} priority /> : null}
+
+            {hasBody ? (
+              <div>
+                <p className="eyebrow text-gold-ink">Overview</p>
+                <h2 className="display-3 mb-6 mt-3 text-neutral-900">Project description</h2>
+                <RichText html={p.content} />
+              </div>
             ) : null}
-            {p.content && htmlToText(p.content) !== p.shortDescription ? <RichText html={p.content} className="mt-10 max-w-2xl" /> : null}
-          </div>
-          <aside className="lg:col-span-4 lg:col-start-9">
-            {p.specs.length ? (
-              <>
-                <h2 className="eyebrow text-mute">Specifications</h2>
-                <div className="mt-6">
-                  <SpecList specs={p.specs} />
+
+            {p.scopeItems.length ? (
+              <div className="rounded-[1.75rem] border border-neutral-200 bg-bone p-6 md:p-10">
+                <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+                  <div>
+                    <p className="eyebrow text-gold-ink">Delivered</p>
+                    <h2 className="display-3 mt-3 text-neutral-900">Scope of work</h2>
+                  </div>
+                  <span className="rounded-full bg-gold px-4 py-1.5 text-sm font-black text-ink">
+                    {p.scopeItems.length} {p.scopeItems.length === 1 ? "item" : "items"}
+                  </span>
                 </div>
-              </>
-            ) : null}
-            {p.services.length ? (
-              <div className={p.specs.length ? "mt-12" : ""}>
-                <h2 className="eyebrow text-mute">Services</h2>
-                <ul className="mt-6 border-t border-line">
-                  {p.services.map((svc) => (
-                    <li key={svc.slug} className="border-b border-line">
-                      <Link href={routes.service(svc.slug)} className="group flex items-center justify-between gap-4 py-4 text-[15px] hover:text-sea">
-                        {svc.title}
-                        <ArrowRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-1" />
-                      </Link>
+                <ul className="grid grid-cols-1 gap-x-8 gap-y-3 md:grid-cols-2">
+                  {p.scopeItems.map((item, i) => (
+                    <li key={`${i}-${item}`} className="flex items-start gap-2.5 text-sm leading-relaxed text-neutral-700">
+                      <CheckCircle2 aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-gold-ink" />
+                      {item}
                     </li>
                   ))}
                 </ul>
               </div>
             ) : null}
+
+                      </div>
+
+          <aside className="lg:col-span-1">
+            <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-bone shadow-sm lg:sticky lg:top-28">
+              <div aria-hidden="true" className="h-1.5 bg-gradient-to-r from-gold via-gold-dark to-gold" />
+              <div className="p-6">
+                <h2 className="mb-5 border-b border-neutral-200 pb-4 text-lg font-black text-neutral-900">Project details</h2>
+                <dl className="space-y-4">
+                  {p.specs.map((spec) => (
+                    <div key={spec.label} className="flex items-baseline justify-between gap-4 border-b border-dashed border-neutral-200 pb-3">
+                      <dt className="text-xs font-bold uppercase tracking-wide text-neutral-500">{spec.label}</dt>
+                      <dd className="text-right font-semibold text-neutral-900">{spec.value}</dd>
+                    </div>
+                  ))}
+                  <div className="flex items-center justify-between gap-4">
+                    <dt className="text-xs font-bold uppercase tracking-wide text-neutral-500">Status</dt>
+                    <dd>
+                      <span className={`inline-block rounded-full px-3 py-1 text-xs font-bold ${badge.className}`}>{badge.label}</span>
+                    </dd>
+                  </div>
+                </dl>
+
+                {p.services.length ? (
+                  <div className="mt-6 border-t border-neutral-200 pt-6">
+                    <h2 className="mb-3 text-xs font-bold uppercase tracking-wide text-neutral-500">Services</h2>
+                    <ul className="space-y-2">
+                      {p.services.map((svc) => (
+                        <li key={svc.slug}>
+                          <Link href={routes.service(svc.slug)} className="group flex items-center justify-between gap-3 text-sm font-semibold text-neutral-800 hover:text-gold-ink">
+                            {svc.title}
+                            <ArrowRight aria-hidden="true" className="h-4 w-4 shrink-0 text-gold-ink transition-transform group-hover:translate-x-1" />
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+
+                <div className="mt-6 border-t border-neutral-200 pt-6">
+                  <Link href={routes.contact} className="btn-solid w-full">
+                    Discuss your project
+                  </Link>
+                </div>
+              </div>
+            </div>
+            <Link href={routes.projects} className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-neutral-500 transition-colors hover:text-gold-ink">
+              <ArrowLeft aria-hidden="true" className="h-4 w-4" /> Back to projects
+            </Link>
           </aside>
         </div>
       </section>
 
-      {p.scopeItems.length ? (
-        <section className="on-dark bg-deep text-white" aria-labelledby="scope-title">
-          <div className="shell py-20 md:py-28">
-            <div className="flex flex-wrap items-end justify-between gap-6">
+      {inner.length ? (
+        <section className="bg-bone py-16 md:py-24" aria-labelledby="gallery-title">
+          <div className="shell">
+            <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
               <div>
-                <Eyebrow tone="light" index="02">Scope of work</Eyebrow>
-                <h2 id="scope-title" className="display-2 mt-6">
-                  {p.scopeItems.length} {p.scopeItems.length === 1 ? "work item" : "work items"}
+                <p className="eyebrow text-gold-ink">Gallery</p>
+                <h2 id="gallery-title" className="display-2 mt-3 text-neutral-900">
+                  {p.title}
                 </h2>
               </div>
+              <span className="text-sm font-semibold text-neutral-500">{inner.length} {inner.length === 1 ? "photo" : "photos"}</span>
             </div>
-            <ol className="mt-14 grid border-t border-white/15 md:grid-cols-2 md:gap-x-16">
-              {p.scopeItems.map((item, i) => (
-                <li key={`${i}-${item}`} className="grid grid-cols-[3rem_1fr] border-b border-white/15 py-4 text-[15px] leading-relaxed text-white/85">
-                  <span className="font-mono text-[11px] leading-6 text-white/60">{String(i + 1).padStart(2, "0")}</span>
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ol>
+            <Gallery images={inner} title={p.title} />
           </div>
         </section>
       ) : null}
 
-      {gallery.length ? (
-        <section className="shell py-20 md:py-28" aria-labelledby="gallery-title">
-          <Eyebrow index="03">Gallery</Eyebrow>
-          <h2 id="gallery-title" className="display-2 mb-12 mt-6">{p.title}</h2>
-          <Gallery images={gallery} title={p.title} />
-        </section>
-      ) : null}
-
       {related.length ? (
-        <section className="border-t border-line bg-bone py-20 md:py-28" aria-labelledby="related-title">
+        <section className="bg-white py-20" aria-labelledby="related-title">
           <div className="shell">
-            <div className="flex flex-wrap items-end justify-between gap-6">
-              <h2 id="related-title" className="display-2">More projects</h2>
-              <Link href={routes.projects} className="text-link inline-flex items-center gap-2 text-[14px] font-medium">
-                All completed projects <ArrowRight />
-              </Link>
-            </div>
-            <ul className="mt-14 grid gap-x-6 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
+            <SectionHeading id="related-title" label="Our projects" title="More projects" />
+            <ul className="grid grid-cols-1 gap-6 md:grid-cols-3">
               {related.map((r) => (
-                <li key={r.id}>
-                  <ProjectTile project={r} />
+                <li key={r.id} data-reveal>
+                  <ProjectShowcaseCard project={r} />
                 </li>
               ))}
             </ul>
@@ -195,7 +236,7 @@ export default async function ProjectPage({ params }: Props) {
         </section>
       ) : null}
 
-      <CtaBand phone={s.phone} email={s.email} />
+      <CtaBand phone={s.phone} />
     </>
   );
 }

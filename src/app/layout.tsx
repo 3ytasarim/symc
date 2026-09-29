@@ -1,6 +1,15 @@
 import type { Metadata, Viewport } from "next";
+import { Lato } from "next/font/google";
 import { SITE_ORIGIN } from "@/lib/seo/site";
 import "./globals.css";
+
+// Lato — the typeface of the original symc.com.tr site.
+const lato = Lato({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "700", "900"],
+  display: "swap",
+  variable: "--font-lato",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),
@@ -9,18 +18,14 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0c1217",
+  themeColor: "#cbaa5c",
   width: "device-width",
   initialScale: 1,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="scroll-smooth">
-      <head>
-        <link rel="preload" href="/fonts/inter-tight-latin-wght-normal.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
-        <link rel="preload" href="/fonts/instrument-serif-latin-400-normal.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
-      </head>
+    <html lang="en" className={`${lato.variable} scroll-smooth`}>
       <body>{children}</body>
     </html>
   );

@@ -63,7 +63,7 @@ export default async function ProjectsAdmin({ searchParams }: { searchParams: Pr
                     {/* eslint-disable-next-line @next/next/no-img-element -- admin thumbnail */}
                     {p.coverImage ? <img src={mediaUrl(p.coverImage.storageKey)} alt="" className="h-10 w-14 rounded-[2px] object-cover" /> : <span className="h-10 w-14 rounded-[2px] bg-[#eef1f3]" />}
                     <div>
-                      <Link href={`/admin/projects/${p.id}/`} className="font-medium hover:text-sea">{p.title}</Link>
+                      <Link href={`/admin/projects/${p.id}/`} className="font-medium hover:text-gold-ink">{p.title}</Link>
                       <p className="font-mono text-[11px] text-mute">{routes.project(p.slug)} · {p._count.gallery} images</p>
                     </div>
                   </div>

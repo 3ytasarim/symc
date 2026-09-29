@@ -59,7 +59,7 @@ export default async function Dashboard() {
               <ul>
                 {block.rows.map((r) => (
                   <li key={r.id} className="flex items-center justify-between gap-3 border-b border-[#eef1f3] px-5 py-3 last:border-0">
-                    <Link href={`${block.base}${r.id}/`} className="truncate text-[14px] hover:text-sea">{r.title}</Link>
+                    <Link href={`${block.base}${r.id}/`} className="truncate text-[14px] hover:text-gold-ink">{r.title}</Link>
                     <span className="flex shrink-0 items-center gap-3 text-[12px] text-mute">
                       <StatusBadge published={r.publishStatus === "PUBLISHED"} /> {fmt(r.updatedAt)}
                     </span>

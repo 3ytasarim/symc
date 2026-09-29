@@ -4,7 +4,7 @@ import { useTransition } from "react";
 import { useFormStatus } from "react-dom";
 
 export const inputCls =
-  "block w-full rounded-[2px] border border-[#cfd5db] bg-white px-3 py-2 text-[14px] text-ink shadow-none outline-none transition focus:border-sea focus:ring-2 focus:ring-sea/20 aria-[invalid=true]:border-signal";
+  "block w-full rounded-[2px] border border-[#cfd5db] bg-white px-3 py-2 text-[14px] text-ink shadow-none outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/20 aria-[invalid=true]:border-signal";
 
 export function Field({
   label,

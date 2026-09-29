@@ -47,6 +47,12 @@
 
     {"src":"m-y-mmm-49-2-m.jpg","dest":"projects/my-mmm-49-2m/my-mmm-49-2m-after-refit-helideck.jpg","alt":"M/Y MMM 49.2m after refit, with helideck and crane on the foredeck","caption":"M/Y MMM","owner":"project:my-mmm-49-2m","role":"cover","old":["2026/01/m-y-mmm-49-2-m.jpg"]},
 
-    {"src":"pictures_1.jpg","dest":"projects/ferretti-custom-line-navetta-42-nimir/ferretti-custom-line-navetta-42-nimir.jpg","alt":"Ferretti Custom Line Navetta 42 Nimir at sea","caption":"Ferretti Custom Line Navetta 42 “Nimir”","owner":"project:ferretti-custom-line-navetta-42-nimir","role":"cover","old":["2026/01/pictures_1.jpg"]}
+    {"src":"pictures_1.jpg","dest":"projects/ferretti-custom-line-navetta-42-nimir/ferretti-custom-line-navetta-42-nimir.jpg","alt":"Ferretti Custom Line Navetta 42 Nimir at sea","caption":"Ferretti Custom Line Navetta 42 “Nimir”","owner":"project:ferretti-custom-line-navetta-42-nimir","role":"cover","old":["2026/01/pictures_1.jpg"]},
+
+    {"src":"Project Management and Consultancy.jpg","dest":"home/services/project-management-superyacht-moored-at-quay.jpg","alt":"Superyacht moored bow-in at a marina quay","caption":"","owner":"home:services","source":"client-supplied","old":[]},
+    {"src":"Refit Services.jpg","dest":"home/services/refit-motor-yacht-underway-at-sea.jpg","alt":"Motor yacht underway at sea","caption":"","owner":"home:services","source":"client-supplied","old":[]},
+    {"src":"Yacht Management Service.jpg","dest":"home/services/yacht-management-superyacht-at-sunset.jpg","maxWidth":2880,"alt":"Superyacht moored at a shipyard quay at sunset","caption":"","owner":"home:services","source":"client-supplied","old":[]},
+    {"src":"Do you want to work with us.jpg","dest":"home/services/work-with-us-superyacht-in-travel-lift.jpg","alt":"Superyacht lifted out of the water by a shipyard travel lift","caption":"","owner":"home:services","source":"client-supplied","old":[]},
+    {"src":"Project Management and Consultancy.jpg","dest":"services/project-management-and-consultancy/superyacht-at-anchor-open-sea.jpg","maxWidth":2880,"alt":"Superyacht at anchor in open sea","caption":"","owner":"service:project-management-and-consultancy","role":"cover","source":"client-supplied","old":[]}
   ]
 }

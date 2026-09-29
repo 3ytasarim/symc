@@ -3,7 +3,11 @@ import Link from "next/link";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { Breadcrumbs } from "@/components/site/Breadcrumbs";
 import { CtaBand } from "@/components/site/CtaBand";
-import { ArrowRight } from "@/components/site/Icons";
+import { ArrowLeft, ArrowRight, Calendar, User } from "lucide-react";
+import { NewsCard } from "@/components/site/Cards";
+import { SectionHeading } from "@/components/site/Eyebrow";
+import { VELARIS_COLORS } from "@/components/site/palette";
+import { Velaris } from "@/components/site/Velaris";
 import { JsonLd } from "@/components/site/JsonLd";
 import { ProjectTile } from "@/components/site/ProjectTiles";
 import { RichText } from "@/components/site/RichText";
@@ -96,56 +100,64 @@ export default async function ArticlePage({ params }: Props) {
     <>
       <JsonLd data={jsonLd} />
       <article>
-        <header className="on-dark bg-deep text-white">
-          <div className="shell pb-14 pt-36 md:pb-20 md:pt-44">
-            <Breadcrumbs crumbs={crumbs} />
-            <h1 className="display-2 mt-12 max-w-[20ch] text-balance">{post.title}</h1>
-            <p className="mt-8 flex flex-wrap gap-x-6 gap-y-2 font-mono text-[12px] uppercase tracking-[0.16em] text-white/70">
-              <time dateTime={post.publishedAt.toISOString()}>{date(post.publishedAt)}</time>
-              {post.category ? <span>{post.category.name}</span> : null}
-              {post.authorName ? <span>By {post.authorName}</span> : null}
-            </p>
-          </div>
-        </header>
-        {post.coverImage ? (
-          <div className="shell -mt-px">
-            <SiteImage image={post.coverImage} priority sizes="(min-width: 1440px) 1330px, 100vw" className="h-auto w-full" />
-          </div>
-        ) : null}
-        <div className="shell grid gap-12 py-16 md:py-24 lg:grid-cols-12">
-          <div className="lg:col-span-8 lg:col-start-3">
-            {post.excerpt ? <p className="font-display text-[1.8rem] leading-[1.25] md:text-[2.2rem]">{post.excerpt}</p> : null}
-            <RichText html={post.content} className="mt-10" />
-            {post.updatedAt.getTime() - post.publishedAt.getTime() > 86_400_000 ? (
-              <p className="mt-12 font-mono text-[11px] uppercase tracking-[0.16em] text-mute">
-                Updated <time dateTime={post.updatedAt.toISOString()}>{date(post.updatedAt)}</time>
+        <header className="on-dark text-white">
+          <Velaris colors={VELARIS_COLORS}>
+            <div aria-hidden="true" className="absolute inset-0 -z-[5] bg-black/35" />
+            <div className="shell relative py-16 md:py-20">
+              <Breadcrumbs crumbs={crumbs} />
+              <Link href={routes.news} className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-white/75 transition-colors hover:text-gold">
+                <ArrowLeft aria-hidden="true" className="h-4 w-4" /> All news
+              </Link>
+              <h1 className="mt-4 max-w-4xl text-3xl font-black leading-tight md:text-5xl">{post.title}</h1>
+              <p className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-neutral-300">
+                <span className="inline-flex items-center gap-1.5">
+                  <Calendar aria-hidden="true" className="h-4 w-4 text-gold" />
+                  <time dateTime={post.publishedAt.toISOString()}>{date(post.publishedAt)}</time>
+                </span>
+                {post.category ? <span className="rounded-md bg-gold px-2 py-0.5 text-xs font-bold text-ink">{post.category.name}</span> : null}
+                {post.authorName ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <User aria-hidden="true" className="h-4 w-4 text-gold" /> {post.authorName}
+                  </span>
+                ) : null}
               </p>
-            ) : null}
-          </div>
+            </div>
+          </Velaris>
+        </header>
+        <div className="shell max-w-4xl py-16">
+          {post.coverImage ? (
+            <SiteImage image={post.coverImage} priority sizes="(min-width: 1024px) 900px, 100vw" className="mb-10 h-auto w-full rounded-lg shadow-lg" />
+          ) : null}
+          {post.excerpt ? <p className="mb-8 text-xl font-semibold leading-relaxed text-neutral-800">{post.excerpt}</p> : null}
+          <RichText html={post.content} />
+          {post.updatedAt.getTime() - post.publishedAt.getTime() > 86_400_000 ? (
+            <p className="mt-10 text-xs text-neutral-500">
+              Updated <time dateTime={post.updatedAt.toISOString()}>{date(post.updatedAt)}</time>
+            </p>
+          ) : null}
+          {post.relatedServices.length ? (
+            <nav aria-labelledby="post-services" className="mt-12 rounded-lg border border-neutral-100 bg-bone p-6">
+              <h2 id="post-services" className="mb-4 text-lg font-black text-neutral-900">Related services</h2>
+              <ul className="space-y-2">
+                {post.relatedServices.map((svc) => (
+                  <li key={svc.slug}>
+                    <Link href={routes.service(svc.slug)} className="group inline-flex items-center gap-2 font-semibold text-neutral-800 hover:text-gold-ink">
+                      {svc.title}
+                      <ArrowRight aria-hidden="true" className="h-4 w-4 text-gold-ink transition-transform group-hover:translate-x-1" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ) : null}
         </div>
       </article>
 
-      {post.relatedServices.length ? (
-        <nav aria-labelledby="post-services" className="shell pb-16">
-          <h2 id="post-services" className="eyebrow text-mute">Related services</h2>
-          <ul className="mt-6 border-t border-line">
-            {post.relatedServices.map((svc) => (
-              <li key={svc.slug} className="border-b border-line">
-                <Link href={routes.service(svc.slug)} className="group flex items-center justify-between py-5">
-                  <span className="font-display text-[1.8rem] group-hover:text-sea">{svc.title}</span>
-                  <ArrowRight className="h-5 w-5" />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      ) : null}
-
       {post.relatedProjects.length ? (
-        <section className="border-t border-line bg-bone py-20" aria-labelledby="post-projects">
+        <section className="bg-bone py-20" aria-labelledby="post-projects">
           <div className="shell">
-            <h2 id="post-projects" className="display-3">Related projects</h2>
-            <ul className="mt-12 grid gap-x-6 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
+            <SectionHeading id="post-projects" label="Our projects" title="Related projects" />
+            <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {post.relatedProjects.map((p) => (
                 <li key={p.id}>
                   <ProjectTile project={p} />
@@ -157,24 +169,21 @@ export default async function ArticlePage({ params }: Props) {
       ) : null}
 
       {more.length ? (
-        <nav aria-labelledby="more-news" className="shell py-20">
-          <h2 id="more-news" className="eyebrow text-mute">More news</h2>
-          <ul className="mt-6 border-t border-line">
-            {more.map((m) => (
-              <li key={m.id} className="border-b border-line">
-                <Link href={routes.post(m.slug)} className="group grid gap-2 py-6 md:grid-cols-12">
-                  <time className="font-mono text-[11px] uppercase tracking-[0.16em] text-mute md:col-span-3" dateTime={m.publishedAt.toISOString()}>
-                    {date(m.publishedAt)}
-                  </time>
-                  <span className="font-display text-[1.6rem] leading-tight group-hover:text-sea md:col-span-9">{m.title}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        <section className="bg-white py-20" aria-labelledby="more-news">
+          <div className="shell">
+            <SectionHeading id="more-news" label="News" title="More news" />
+            <ul className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              {more.map((m) => (
+                <li key={m.id}>
+                  <NewsCard href={routes.post(m.slug)} title={m.title} excerpt={m.excerpt} image={m.coverImage} date={m.publishedAt} category={m.category?.name} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
       ) : null}
 
-      <CtaBand phone={s.phone} email={s.email} />
+      <CtaBand phone={s.phone} />
     </>
   );
 }

@@ -26,7 +26,7 @@ export default async function ServicesAdmin() {
                   <ActionButton action={moveServiceAction.bind(null, s.id, "down")} label="↓" ariaLabel={`Move ${s.title} down`} />
                 </div></td>
                 <td className="px-4 py-3">
-                  <Link href={`/admin/services/${s.id}/`} className="font-medium hover:text-sea">{s.title}</Link>
+                  <Link href={`/admin/services/${s.id}/`} className="font-medium hover:text-gold-ink">{s.title}</Link>
                   <p className="font-mono text-[11px] text-mute">{routes.service(s.slug)}</p>
                 </td>
                 <td className="px-4 py-3 text-mute">{s._count.projects}</td>

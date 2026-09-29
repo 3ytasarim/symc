@@ -42,7 +42,7 @@ export function RichTextEditor({ name, defaultValue }: { name: string; defaultVa
   };
 
   return (
-    <div className="rounded-[2px] border border-[#cfd5db] bg-white focus-within:border-sea">
+    <div className="rounded-[2px] border border-[#cfd5db] bg-white focus-within:border-gold">
       <div className="flex flex-wrap gap-1 border-b border-[#e6eaed] p-1.5" role="toolbar" aria-label="Formatting">
         <button type="button" className={btn(!!editor?.isActive("heading", { level: 2 }))} onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}>H2</button>
         <button type="button" className={btn(!!editor?.isActive("heading", { level: 3 }))} onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}>H3</button>

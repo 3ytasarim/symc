@@ -31,7 +31,7 @@ export function SettingsForm({ initial }: { initial: SettingsFormData }) {
   );
   return (
     <form onSubmit={onSubmit} className="space-y-6">
-      <p className="rounded-[2px] border border-sky-200 bg-sky-50 px-4 py-3 text-[13px] text-sky-950">
+      <p className="rounded-[2px] border border-sky-200 bg-gold-50 px-4 py-3 text-[13px] text-sky-950">
         These values feed the header, footer, contact page and the Organization structured data. Enter only verified company information. API keys and other secrets never belong here.
       </p>
       <div className="grid gap-6 xl:grid-cols-2">

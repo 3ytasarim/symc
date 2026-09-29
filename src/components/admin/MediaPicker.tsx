@@ -65,7 +65,7 @@ export function MediaPickerDialog({
             {items.map((m) => (
               <li key={m.id}>
                 <button type="button" onClick={() => onSelect(m)} className="group block w-full text-left">
-                  <span className="block aspect-square overflow-hidden rounded-[2px] bg-[#eef1f3] ring-sea group-hover:ring-2 group-focus-visible:ring-2">
+                  <span className="block aspect-square overflow-hidden rounded-[2px] bg-[#eef1f3] ring-gold group-hover:ring-2 group-focus-visible:ring-2">
                     <img src={m.url} alt="" loading="lazy" className="h-full w-full object-cover" />
                   </span>
                   <span className="mt-1 line-clamp-2 block text-[11px] leading-snug text-[#3b4650]">{m.alt || m.filename}</span>

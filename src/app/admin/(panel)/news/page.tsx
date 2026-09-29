@@ -36,7 +36,7 @@ export default async function NewsAdmin({ searchParams }: { searchParams: Promis
               return (
                 <tr key={p.id} className="border-b border-[#eef1f3] last:border-0">
                   <td className="px-4 py-3">
-                    <Link href={`/admin/news/${p.id}/`} className="font-medium hover:text-sea">{p.title}</Link>
+                    <Link href={`/admin/news/${p.id}/`} className="font-medium hover:text-gold-ink">{p.title}</Link>
                     <p className="font-mono text-[11px] text-mute">{routes.post(p.slug)}</p>
                   </td>
                   <td className="px-4 py-3 text-mute">{p.category?.name ?? "—"}</td>

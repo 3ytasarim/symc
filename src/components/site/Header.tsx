@@ -1,29 +1,38 @@
 import { getSiteSettings, telHref } from "@/lib/data/settings";
 import { getPublishedServices } from "@/lib/data/services";
-import { getPublishedPosts } from "@/lib/data/posts";
 import { routes } from "@/lib/seo/site";
-import { HeaderBar, type NavItem } from "./HeaderBar";
+import { HeaderBar, type NavItem, type Social } from "./HeaderBar";
 
 export async function Header() {
-  const [settings, services, posts] = await Promise.all([getSiteSettings(), getPublishedServices(), getPublishedPosts(1)]);
-  const nav: NavItem[] = [
+  const [s, services] = await Promise.all([getSiteSettings(), getPublishedServices()]);
+  const navLeft: NavItem[] = [
+    { label: "Home", href: routes.home },
     { label: "About", href: routes.about },
     {
       label: "Services",
       href: routes.services,
-      children: services.map((s) => ({ label: s.title, href: routes.service(s.slug) })),
+      children: services.map((svc) => ({ label: svc.title, href: routes.service(svc.slug) })),
     },
+  ];
+  const navRight: NavItem[] = [
     { label: "Projects", href: routes.projects },
-    // The news section is only linked once it has published articles.
-    ...(posts.length ? [{ label: "News", href: routes.news }] : []),
+    { label: "News", href: routes.news },
     { label: "Contact", href: routes.contact },
   ];
+  const socials = [
+    s.instagramUrl && { kind: "instagram", href: s.instagramUrl, label: "Instagram" },
+    s.linkedinUrl && { kind: "linkedin", href: s.linkedinUrl, label: "LinkedIn" },
+    s.whatsappUrl && { kind: "whatsapp", href: s.whatsappUrl, label: "WhatsApp" },
+  ].filter(Boolean) as Social[];
+
   return (
     <HeaderBar
-      nav={nav}
-      phone={settings.phone ? { label: settings.phone, href: telHref(settings.phone) } : null}
-      email={settings.email || null}
-      companyName={settings.companyName}
+      navLeft={navLeft}
+      navRight={navRight}
+      phone={s.phone ? { label: s.phone, href: telHref(s.phone) } : null}
+      email={s.email || null}
+      socials={socials}
+      companyName={s.companyName}
     />
   );
 }

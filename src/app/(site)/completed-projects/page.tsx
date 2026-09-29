@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
+import { Ship, Wrench } from "lucide-react";
 import { CtaBand } from "@/components/site/CtaBand";
-import { Eyebrow } from "@/components/site/Eyebrow";
 import { JsonLd } from "@/components/site/JsonLd";
 import { PageHero } from "@/components/site/PageHero";
-import { ProjectFeature, ProjectTile } from "@/components/site/ProjectTiles";
-import { getImageByKey } from "@/lib/data/media-lookup";
+import { ProjectTabs } from "@/components/site/ProjectTabs";
+import { ProjectShowcaseCard } from "@/components/site/ProjectTiles";
 import { getProjectCategories, getPublishedProjects } from "@/lib/data/projects";
 import { getSiteSettings } from "@/lib/data/settings";
 import { ids, itemListEntity, pageGraph } from "@/lib/seo/json-ld";
@@ -13,7 +13,6 @@ import { absoluteUrl, routes } from "@/lib/seo/site";
 
 export const revalidate = 3600;
 
-const HERO_KEY = "services/refit-services/yachts-in-refit-shed.jpg";
 const DESCRIPTION =
   "Completed and ongoing SYMC projects: superyacht new construction supervision and full refits of motor yachts from 35 m to 50 m, including M/Y MMM, Starburst III, Ileria and Duke Town.";
 
@@ -29,23 +28,14 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ProjectsPage() {
-  const [s, projects, categories, fallbackHero] = await Promise.all([
-    getSiteSettings(),
-    getPublishedProjects(),
-    getProjectCategories(),
-    getImageByKey(HERO_KEY),
-  ]);
+  const [s, projects, categories] = await Promise.all([getSiteSettings(), getPublishedProjects(), getProjectCategories()]);
   const crumbs = [
     { name: "Home", path: routes.home },
     { name: "Completed Projects", path: routes.projects },
   ];
-  const groups = [
-    ...categories
-      .map((c) => ({ key: c.slug, name: c.name, description: c.description, items: projects.filter((p) => p.category?.slug === c.slug) }))
-      .filter((g) => g.items.length),
-    ...(projects.some((p) => !p.category)
-      ? [{ key: "other", name: "Other projects", description: "", items: projects.filter((p) => !p.category) }]
-      : []),
+  const tabs = [
+    ...categories.map((c) => ({ key: c.slug, label: c.name, count: projects.filter((p) => p.category?.slug === c.slug).length })).filter((t) => t.count),
+    ...(projects.some((p) => !p.category) ? [{ key: "other", label: "Other", count: projects.filter((p) => !p.category).length }] : []),
   ];
   const lastModified = projects.reduce<Date | null>((max, x) => (!max || x.updatedAt > max ? x.updatedAt : max), null);
   const jsonLd = await pageGraph(s, {
@@ -58,6 +48,7 @@ export default async function ProjectsPage() {
     entities: [itemListEntity(routes.projects, projects.map((p) => ({ name: p.title, path: routes.project(p.slug) })))],
     mainEntityId: ids.entity(absoluteUrl(routes.projects), "itemlist"),
   });
+  const categoryIcon = (slug: string) => (/new|construction|build/.test(slug) ? Ship : Wrench);
 
   return (
     <>
@@ -66,43 +57,48 @@ export default async function ProjectsPage() {
         title="Completed Projects"
         eyebrow="Track record"
         intro="New construction and refit projects carried out, controlled and managed by SYMC."
-        image={fallbackHero}
         crumbs={crumbs}
-        meta={groups.map((g) => `${g.items.length} ${g.name}`)}
+        badges={tabs.map((t) => ({ label: `${t.count} ${t.label}` }))}
       />
 
-      {groups.map((g, gi) => {
-        const [first, ...rest] = g.items;
-        // Full-bleed lead only when the photograph is large enough to stay sharp.
-        const leadIsPhoto = (first?.coverImage?.width ?? 0) >= 1200;
-        return (
-          <section key={g.key} id={g.key} className={`py-20 md:py-28 ${gi % 2 ? "border-t border-line bg-bone" : ""}`} aria-labelledby={`cat-${g.key}`}>
-            <div className="shell">
-              <div className="grid gap-8 md:grid-cols-12">
-                <div className="md:col-span-5">
-                  <Eyebrow index={String(gi + 1).padStart(2, "0")}>{`${g.items.length} project${g.items.length === 1 ? "" : "s"}`}</Eyebrow>
-                  <h2 id={`cat-${g.key}`} className="display-2 mt-6">{g.name}</h2>
-                </div>
-                {g.description ? <p className="text-[1.0625rem] leading-[1.75] text-ink/75 md:col-span-6 md:col-start-7 md:pt-14">{g.description}</p> : null}
-              </div>
-              {first && leadIsPhoto ? (
-                <div className="mt-14">
-                  <ProjectFeature project={first} className="aspect-[4/5] sm:aspect-[16/9] md:aspect-[21/9]" sizes="(min-width: 1440px) 1330px, 100vw" />
-                </div>
-              ) : null}
-              <ul className="mt-14 grid gap-x-6 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
-                {(leadIsPhoto ? rest : g.items).map((p) => (
-                  <li key={p.id}>
-                    <ProjectTile project={p} />
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </section>
-        );
-      })}
+      <section id="projects" className="scroll-mt-24 bg-white py-16 md:py-24" aria-labelledby="projects-title">
+        <div className="shell">
+          <div className="mx-auto mb-10 max-w-2xl text-center">
+            <p className="eyebrow text-gold-ink">Our projects</p>
+            <h2 id="projects-title" className="display-2 mt-3 text-neutral-900">
+              {projects.length} projects
+            </h2>
+            <div aria-hidden="true" className="section-divider mx-auto mt-6 w-24" />
+          </div>
+          <ProjectTabs
+            tabs={tabs}
+            items={projects.map((p) => ({ id: p.id, cat: p.category?.slug ?? "other", node: <ProjectShowcaseCard project={p} /> }))}
+          />
+        </div>
+      </section>
 
-      <CtaBand phone={s.phone} email={s.email} />
+      {categories.some((c) => c.description) ? (
+        <section className="bg-bone py-16 md:py-20" aria-label="Project types">
+          <ul className="shell grid grid-cols-1 gap-6 md:grid-cols-2">
+            {categories
+              .filter((c) => c.description)
+              .map((c) => {
+                const Icon = categoryIcon(c.slug);
+                return (
+                  <li key={c.slug} className="rounded-[1.75rem] border border-neutral-200 bg-white p-8 shadow-sm md:p-10" data-reveal>
+                    <span aria-hidden="true" className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gold/15 text-gold-ink">
+                      <Icon className="h-6 w-6" />
+                    </span>
+                    <h2 className="mt-5 text-xl font-black text-neutral-900">{c.name}</h2>
+                    <p className="mt-3 text-sm leading-relaxed text-neutral-600">{c.description}</p>
+                  </li>
+                );
+              })}
+          </ul>
+        </section>
+      ) : null}
+
+      <CtaBand phone={s.phone} />
     </>
   );
 }
