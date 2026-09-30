@@ -40,7 +40,7 @@ export function HeroSlider({ slides, heading }: { slides: Slide[]; heading: stri
 
   return (
     <section
-      className="on-dark relative isolate h-[620px] overflow-hidden bg-deep text-white md:h-[760px]"
+      className="on-dark relative isolate h-[680px] overflow-hidden bg-deep text-white md:h-[860px]"
       aria-roledescription="carousel"
       aria-label="Highlights"
     >
