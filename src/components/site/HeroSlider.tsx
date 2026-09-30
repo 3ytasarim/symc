@@ -40,7 +40,7 @@ export function HeroSlider({ slides, heading }: { slides: Slide[]; heading: stri
 
   return (
     <section
-      className="on-dark relative isolate h-[560px] overflow-hidden bg-deep text-white md:h-[640px]"
+      className="on-dark relative isolate h-[620px] overflow-hidden bg-deep text-white md:h-[760px]"
       aria-roledescription="carousel"
       aria-label="Highlights"
     >
@@ -57,7 +57,7 @@ export function HeroSlider({ slides, heading }: { slides: Slide[]; heading: stri
               fill
               sizes="100vw"
               quality={80}
-              className="object-cover"
+              className="object-cover object-[center_70%]"
               {...(i === 0 ? { priority: true, fetchPriority: "high" as const } : { loading: "lazy" as const })}
             />
           </div>
